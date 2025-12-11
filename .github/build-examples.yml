@@ -1,0 +1,210 @@
+name: IDS Peak SDK Examples CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  precommit:
+    name: Run Pre-Commit Hooks
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files
+
+  build:
+    name: Build Examples
+    needs: precommit
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: gcc
+          - os: ubuntu-latest
+            compiler: clang
+          - os: windows-latest
+            compiler: msvc
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      #################################################################
+      # Linux dependencies
+      #################################################################
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential cmake ninja-build python3-pip dotnet-sdk-8.0
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt install -y clang
+          fi
+
+      #################################################################
+      # IDS Peak SDK caching
+      #################################################################
+      - name: Cache IDS Peak Linux SDK
+        if: matrix.os == 'ubuntu-latest'
+        id: peak-cache
+        uses: actions/cache@v4
+        with:
+          path: ids-peak-linux.tgz
+          key: ids-peak-linux-v2.18.1.0
+
+      - name: Download IDS Peak Linux SDK (if missing)
+        if: matrix.os == 'ubuntu-latest' && steps.peak-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o ids-peak-linux.tgz "https://de.ids-imaging.com/files/downloads/ids-peak/software/linux-desktop/ids-peak_2.18.1.0-132_amd64.tgz"
+
+      - name: Install IDS Peak SDK (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo tar -xzf ids-peak-linux.tgz -C /
+          sudo ldconfig
+
+      #################################################################
+      # Windows dependencies
+      #################################################################
+      - name: Prepare MSVC environment
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install .NET
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.x"
+
+      - name: Install Python
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      #################################################################
+      # IDS Peak SDK caching (Windows)
+      #################################################################
+      - name: Cache IDS Peak Windows SDK
+        if: matrix.os == 'windows-latest'
+        id: peakwin-cache
+        uses: actions/cache@v4
+        with:
+          path: ids-peak-win.zip
+          key: ids-peak-win-v2.18.1.0
+
+      - name: Download IDS Peak Windows SDK ZIP (if missing)
+        if: matrix.os == 'windows-latest' && steps.peakwin-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o ids-peak-win.zip "https://de.ids-imaging.com/files/downloads/ids-peak/software/windows/ids-peak-win-standard-setup-64-2.18.1.0.zip"
+
+      - name: Extract Windows SDK installer
+        if: matrix.os == 'windows-latest'
+        run: Expand-Archive -Path ids-peak-win.zip -DestinationPath peaksetup
+
+      - name: Install IDS Peak SDK (Windows Silent)
+        if: matrix.os == 'windows-latest'
+        run: |
+          peaksetup/ids_peak_setup2.18.1.0.exe /s /v"/qn /norestart"
+        shell: powershell
+
+      #################################################################
+      # Cache C/C++ build artifacts
+      #################################################################
+      - name: Cache C build
+        uses: actions/cache@v4
+        with:
+          path: build-c
+          key: ${{ runner.os }}-${{ matrix.compiler }}-c-build
+          restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
+
+      - name: Cache C++ build
+        uses: actions/cache@v4
+        with:
+          path: build-cpp
+          key: ${{ runner.os }}-${{ matrix.compiler }}-cpp-build
+          restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
+
+      #################################################################
+      # Configure & Build C/C++ Examples
+      #################################################################
+      - name: Configure C example
+        run: cmake -S c -B build-c -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure C++ example
+        run: cmake -S cpp -B build-cpp -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build C example
+        run: cmake --build build-c --config Release
+
+      - name: Build C++ example
+        run: cmake --build build-cpp --config Release
+
+      #################################################################
+      # Cache NuGet packages (C#)
+      #################################################################
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+
+      - name: Build C# example
+        run: dotnet build csharp/Example.csproj -c Release
+
+      #################################################################
+      # Cache Python packages
+      #################################################################
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('python/requirements.txt') }}
+
+      - name: Install Python requirements
+        run: pip install -r python/requirements.txt || true
+
+      - name: Run Python sample
+        run: python python/example.py
+
+      #################################################################
+      # Upload artifacts per matrix combination
+      #################################################################
+      - name: Upload C binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: c-examples-${{ matrix.os }}-${{ matrix.compiler }}
+          path: build-c
+
+      - name: Upload C++ binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp-examples-${{ matrix.os }}-${{ matrix.compiler }}
+          path: build-cpp
+
+      - name: Upload C# binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: csharp-examples-${{ matrix.os }}-${{ matrix.compiler }}
+          path: csharp/bin/Release
+
+      - name: Upload Python examples
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-examples-${{ matrix.os }}-${{ matrix.compiler }}
+          path: python
