@@ -10,6 +10,8 @@ This collection aims to provide minimal, easy-to-understand examples that show h
 
 
 ## Available Languages
+- [**C++ (C++14)**](cpp)
+- [**C# (.NET Standard 2.0, examples may target .NET Framework or .NET 5+)**](csharp)
 - [**Python**](python)
 - [**C++**](cpp)
 

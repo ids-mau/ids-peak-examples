@@ -1,0 +1,80 @@
+# C# Examples – IDS peak Generic SDK
+
+This directory contains C# examples demonstrating how to use the IDS
+peak Generic SDK via its **.NET** Bindings.
+
+The examples require at least:
+- **.NET Framework 4.6.1** (classic)
+- **.NET 6** (modern)
+
+## Requirements
+
+- An [IDS peak Setup](https://en.ids-imaging.com/download-peak.html) (Runtime Setup which provides the GenTL is enough)
+- .NET SDK / Visual Studio for building and running examples
+
+> Note: The C# bindings include the necessary runtime DLLs to run the
+> examples.
+Installing the IDS peak Runtime Setup is still required to provide the necessary GenTL for device access.
+
+## Build Instructions
+
+The IDS peak SDK relies on **native (unmanaged) DLLs** that are
+distributed inside the referenced NuGet packages.
+
+Because native binaries are involved, you **must specify the target
+architecture via `-p:Platform=<arch>`** when building. This ensures that
+your application is built for an architecture that can correctly load
+the required native libraries.
+
+If **no `RuntimeIdentifier` (`-r`) is specified**, all available native
+runtimes from the packages will be copied to your build output.
+This would normally maximize compatibility but increase the application size.
+However, when the Platform parameter is specified, other architectures
+are not supported (except for x86 on x64).
+
+You may **optionally specify `-r <rid>`** to reduce the size of the build
+output by including only the native libraries for a single runtime.
+
+### .NET (modern, SDK-style)
+
+**Required (correct architecture selection):**
+
+```bash
+dotnet build -p:Platform=x64 exampleProject.csproj
+dotnet run  -p:Platform=x64 --project exampleProject.csproj
+```
+
+**Optional (smaller output):**
+
+```bash
+dotnet build -r win-x64 -p:Platform=x64 exampleProject.csproj
+dotnet run  -r win-x64 -p:Platform=x64 --project exampleProject.csproj
+```
+
+You can substitute another architecture/runtime pair if needed, e.g.:
+
+* `-p:Platform=x86` (optionally with `-r win-x86`)
+* `-p:Platform=x64` with `-r linux-x64`
+
+### .NET Framework (classic)
+
+Use Visual Studio **or** build from the command line:
+
+```bash
+# Restore packages first
+msbuild exampleProjectFramework.csproj /t:Restore
+
+# Build for a specific platform (required for native DLLs)
+msbuild exampleProjectFramework.csproj /p:Platform=x64
+```
+
+## NuGet
+
+IDS peak .NET packages are available on NuGet and can be added with:
+```bash
+dotnet add package IDSImaging.Peak.<PackageName>
+```
+
+## Included Examples
+
+- [OpenCamera: command-line sample demonstrating device enumeration and access](OpenCamera)
