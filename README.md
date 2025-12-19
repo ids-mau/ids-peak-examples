@@ -11,6 +11,7 @@ This collection aims to provide minimal, easy-to-understand examples that show h
 
 ## Available Languages
 - [**Python**](python)
+- [**C++**](cpp)
 
 ## Prerequisites
 - [IDS peak Setup](https://en.ids-imaging.com/download-peak.html)
