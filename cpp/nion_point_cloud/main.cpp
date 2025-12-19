@@ -94,7 +94,7 @@ DeviceInfo OpenFirstConnectedDevice()
     }
 
     const auto device = (*it)->OpenDevice(peak::core::DeviceAccessType::Control);
-    const auto nodeMap = device->RemoteDevice()->NodeMaps().front();
+    const auto nodeMap = device->RemoteDevice()->NodeMaps().at(0);
 
     return { device, nodeMap };
 }
@@ -338,12 +338,19 @@ int main()
             if (buffer->IsIncomplete())
             {
                 std::cout << "Incomplete buffer " << i << ". Skipping." << std::endl;
+                stream->QueueBuffer(buffer);
                 continue;
             }
             if (!buffer->HasNewData())
             {
                 std::cout << "Buffer " << i << " has no new data. Skipping." << std::endl;
+                stream->QueueBuffer(buffer);
                 continue;
+            }
+
+            if (!buffer->HasParts())
+            {
+                throw std::runtime_error("Buffer has no parts. Aborting.");
             }
 
             auto parts = ExtractBufferParts(buffer);
