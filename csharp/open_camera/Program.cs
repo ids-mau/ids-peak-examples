@@ -1,31 +1,30 @@
 /*!
- * \file    Program.cs
- * \author  vapivendorname
- * \date    2021-03-05
- *
  * \brief   This application demonstrates how to use the device manager to open a camera
  *
- * Copyright (C) @[[COPYRIGHT_YEAR(2020)]], vapivendorname.
+ * Copyright (C) 2026, IDS Imaging Development Systems GmbH.
  *
- * The information in this document is subject to change without notice
- * and should not be construed as a commitment by vapivendorname.
- * vapivendorname does not assume any responsibility for any errors
- * that may appear in this document.
+ * Permission to use, copy, modify, and/or distribute this software for
+ * any purpose with or without fee is hereby granted.
  *
- * This document, or source code, is provided solely as an example of how to utilize
- * vapivendorname software libraries in a sample application.
- * vapivendorname does not assume any responsibility
- * for the use or reliability of any portion of this document.
+ * THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL
+ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+ * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+ * DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+ * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * General permission to copy or modify is hereby granted.
  */
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using IDSImaging.Peak.API;
+using IDSImaging.Peak.API.Core;
+using IDSImaging.Peak.API.Core.Nodes;
 
 namespace open_camera
 {
@@ -33,27 +32,27 @@ namespace open_camera
     {
         static void Main(string[] args)
         {
+            // The library must be initialized before use.
+            // Each call to `Initialize` must be matched with a corresponding call to `Close`.
+            Library.Initialize();
+
             try
             {
-                String projectName = "open_camera";
-                String version = "v1.1.1";
+                string projectName = "open_camera";
+                string version = "v1.1.1";
 
-                Console.WriteLine("vapiproductname " + projectName + " Sample " + version);
-
-                // The library must be initialized before use.
-                // Each call to `Initialize` must be matched with a corresponding call to `Close`.
-                vapinamespace.Library.Initialize();
+                Console.WriteLine($"IDS peak {projectName} Sample {version}");
 
                 // Get the device manager singleton object.
-                var deviceManager = vapinamespace.DeviceManager.Instance();
+                // WARNING: `using` the device manager instance would result
+                //          in breaking the singleton
+                var deviceManager = DeviceManager.Instance();
 
-                // Update the device manager.
-                // When `Update` is called, it searches for all
-                // ProducerLibraries found in the directories
+                // Update the device manager. When `Update` is called, it
+                // searches for all ProducerLibraries found in the directories
                 // specified by the GENICAM_GENTL{32/64}_PATH environment
-                // variable. It then opens all producers,
-                // their systems and interfaces, and lists all available
-                // DeviceDescriptors.
+                // variable. It then opens all producers, their systems and
+                // interfaces, and lists all available DeviceDescriptors.
                 deviceManager.Update();
 
                 // Exit program if no device was found.
@@ -61,20 +60,23 @@ namespace open_camera
                 {
                     Console.WriteLine("No device found. Exiting program.");
                     Console.ReadKey();
-                    // One call to `Close` is required for each call to `Initialize`.
-                    vapinamespace.Library.Close();
                     return;
                 }
 
                 // List all available devices.
                 uint i = 0;
+                var devices = deviceManager.Devices();
+
                 Console.WriteLine("Devices available: ");
-                foreach (var deviceDescriptor in deviceManager.Devices())
+
+                foreach (var deviceDescriptor in devices)
                 {
-                    Console.WriteLine(i + ": " + deviceDescriptor.ModelName() + " ("
-                              + deviceDescriptor.ParentInterface().DisplayName() + "; "
-                              + deviceDescriptor.ParentInterface().ParentSystem().DisplayName() + " v."
-                              + deviceDescriptor.ParentInterface().ParentSystem().Version() + ")");
+                    Console.WriteLine(
+                        $"{i}: {deviceDescriptor.ModelName()} "
+                            + $"({deviceDescriptor.ParentInterface().DisplayName()}; "
+                            + $"{deviceDescriptor.ParentInterface().ParentSystem().DisplayName()} "
+                            + $"v.{deviceDescriptor.ParentInterface().ParentSystem().Version()})"
+                    );
                     ++i;
                 }
 
@@ -82,11 +84,15 @@ namespace open_camera
                 int selectedDevice = 0;
                 // Prompt user for device index or remove this block to always use the first device.
                 Console.WriteLine("\nSelect device to open: ");
-                selectedDevice = Convert.ToInt32(Console.ReadLine());
+                if (!int.TryParse(Console.ReadLine(), out selectedDevice))
+                {
+                    Console.WriteLine("Invalid input — using device 0.");
+                    selectedDevice = 0;
+                }
 
                 // Open the selected device with control access.
                 // The access types correspond to the GenTL `DEVICE_ACCESS_FLAGS`.
-                var device = deviceManager.Devices()[selectedDevice].OpenDevice(vapinamespace.core.DeviceAccessType.Control);
+                var device = devices[selectedDevice].OpenDevice(DeviceAccessType.Control);
 
                 // Retrieve the remote device's primary node map.
                 // In GenICam, a node map represents a hierarchical set of parameters (features)
@@ -95,46 +101,35 @@ namespace open_camera
                 // device-specific extensions.
                 var nodeMapRemoteDevice = device.RemoteDevice().NodeMaps()[0];
 
-                try
-                {
-                    // Print model name using the "DeviceModelName" node.
-                    Console.WriteLine("Model Name: " + nodeMapRemoteDevice.FindNode<vapinamespace.core.nodes.StringNode>("DeviceModelName").Value());
-                }
-                catch (Exception)
-                {
-                    // If "DeviceModelName" is not a valid or implemented node.
-                    Console.WriteLine("Model Name: (unknown)");
-                }
+                // Print model name using the "DeviceModelName" node.
+                Console.WriteLine(
+                    $"Model Name: {TryReadString(nodeMapRemoteDevice, "DeviceModelName")}"
+                );
 
-                try
-                {
-                    // Print user ID using the "DeviceUserID" node.
-                    Console.WriteLine("User ID: " + nodeMapRemoteDevice.FindNode<vapinamespace.core.nodes.StringNode>("DeviceUserID").Value());
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("User ID: (unknown)");
-                }
+                // Print user ID using the "DeviceUserID" node.
+                Console.WriteLine($"User ID: {TryReadString(nodeMapRemoteDevice, "DeviceUserID")}");
 
-                try
-                {
-                    // Print sensor information using the "SensorName" node.
-                    Console.WriteLine("Sensor Name: " + nodeMapRemoteDevice.FindNode<vapinamespace.core.nodes.StringNode>("SensorName").Value());
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Sensor Name: (unknown)");
-                }
+                // Print sensor information using the "SensorName" node.
+                Console.WriteLine(
+                    $"Sensor Name: {TryReadString(nodeMapRemoteDevice, "SensorName")}"
+                );
 
                 try
                 {
                     // Print maximum sensor resolution (width x height).
-                    Console.WriteLine("Max. resolution (w x h): "
-                          + nodeMapRemoteDevice.FindNode<vapinamespace.core.nodes.IntegerNode>("WidthMax").Value() + " x "
-                          + nodeMapRemoteDevice.FindNode<vapinamespace.core.nodes.IntegerNode>("HeightMax").Value());
+                    var widthMax = nodeMapRemoteDevice
+                        .FindNode<IntegerNode>("WidthMax")
+                        .Value();
+
+                    var heightMax = nodeMapRemoteDevice
+                        .FindNode<IntegerNode>("HeightMax")
+                        .Value();
+
+                    Console.WriteLine($"Max. resolution (w x h): {widthMax} x {heightMax}");
                 }
                 catch (Exception)
                 {
+                    // If "WidthMax"/"HeightMax" are not valid or implemented nodes.
                     Console.WriteLine("Max. resolution (w x h): (unknown)");
                 }
 
@@ -147,17 +142,28 @@ namespace open_camera
             }
             catch (Exception e)
             {
-                Console.WriteLine("EXCEPTION: " + e.Message);
+                Console.WriteLine($"EXCEPTION: {e.Message}");
             }
-
-            // One call to `Close` is required for each call to `Initialize`.
-            vapinamespace.Library.Close();
+            finally
+            {
+                // One call to `Close` is required for each call to `Initialize`.
+                Library.Close();
+            }
 
             Console.WriteLine("\nPress any key to exit...");
             Console.ReadKey();
-            Environment.ExitCode = 0;
-            return;
+        }
+
+        static string TryReadString(NodeMap nodeMap, string nodeName)
+        {
+            try
+            {
+                return nodeMap.FindNode<StringNode>(nodeName).Value();
+            }
+            catch
+            {
+                return "(unknown)";
+            }
         }
     }
 }
-
