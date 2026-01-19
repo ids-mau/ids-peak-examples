@@ -39,14 +39,14 @@ This will include only the native libraries required for that runtime.
 
 ```bash
 dotnet build exampleProject.csproj
-dotnet run exampleProject.csproj
+dotnet run --project exampleProject.csproj
 ```
 
 > Optional (smaller output):
 >
 > ```bash
 > dotnet build -r win-x64 exampleProject.csproj
-> dotnet run -r win-x64 exampleProject.csproj
+> dotnet run -r win-x64 --project exampleProject.csproj
 > ```
 
 ### .NET Framework (classic)

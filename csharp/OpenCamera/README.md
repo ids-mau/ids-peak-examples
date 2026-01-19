@@ -42,14 +42,14 @@ The IDS peak SDK includes **native (unmanaged) DLLs** in its NuGet packages.
 
 ```bash
 dotnet build OpenCamera.csproj
-dotnet run OpenCamera.csproj
+dotnet run --project OpenCamera.csproj
 ```
 
 > Optional (smaller output for a specific runtime):
 >
 > ```bash
 > dotnet build -r win-x64 OpenCamera.csproj
-> dotnet run -r win-x64 OpenCamera.csproj
+> dotnet run -r win-x64 --project OpenCamera.csproj
 > ```
 
 ### .NET Framework (classic)
