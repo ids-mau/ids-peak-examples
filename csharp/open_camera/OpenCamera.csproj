@@ -20,9 +20,7 @@
   </Target>
 
   <ItemGroup>
-      <PackageReference Include="IDSImaging.Peak.AFL" Version="2.*" />
       <PackageReference Include="IDSImaging.Peak.API" Version="1.*" />
-      <PackageReference Include="IDSImaging.Peak.IPL" Version="1.*" />
   </ItemGroup>
 
 </Project>
