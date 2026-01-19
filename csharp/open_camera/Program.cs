@@ -1,21 +1,22 @@
-/*!
- * \brief   This application demonstrates how to use the device manager to open a camera
- *
- * Copyright (C) 2026, IDS Imaging Development Systems GmbH.
- *
- * Permission to use, copy, modify, and/or distribute this software for
- * any purpose with or without fee is hereby granted.
- *
- * THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL
- * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE
- * FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
- * DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
- * AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
- * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- */
-
+/// <summary>
+/// This sample demonstrates how to use the IDS peak DeviceManager to discover,
+/// select, and open a camera. After opening the device with control access,
+/// basic device information is retrieved from the remote GenICam node map.
+/// </summary>
+/// <license>
+/// Copyright (C) 2026, IDS Imaging Development Systems GmbH.
+///
+/// Permission to use, copy, modify, and/or distribute this software for
+/// any purpose with or without fee is hereby granted.
+///
+/// THE SOFTWARE IS PROVIDED “AS IS” AND THE AUTHOR DISCLAIMS ALL
+/// WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+/// OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+/// FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+/// DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+/// AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+/// OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/// </license>
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +27,7 @@ using IDSImaging.Peak.API;
 using IDSImaging.Peak.API.Core;
 using IDSImaging.Peak.API.Core.Nodes;
 
-namespace open_camera
+namespace IDSImaging.Peak.Samples.OpenCamera
 {
     class Program
     {
@@ -38,10 +39,7 @@ namespace open_camera
 
             try
             {
-                string projectName = "open_camera";
-                string version = "v1.1.1";
-
-                Console.WriteLine($"IDS peak {projectName} Sample {version}");
+                Console.WriteLine($"IDS peak OpenCamera Sample");
 
                 // Get the device manager singleton object.
                 // WARNING: `using` the device manager instance would result
@@ -92,14 +90,18 @@ namespace open_camera
 
                 // Open the selected device with control access.
                 // The access types correspond to the GenTL `DEVICE_ACCESS_FLAGS`.
-                var device = devices[selectedDevice].OpenDevice(DeviceAccessType.Control);
+                // NOTE: Dispose objects no longer needed at the end of the
+                //       scope by adding `using`.
+                //       Alternatively call `Dispose` explictily:
+                //       `device?.Dispose();`
+                using var device = devices[selectedDevice].OpenDevice(DeviceAccessType.Control);
 
                 // Retrieve the remote device's primary node map.
                 // In GenICam, a node map represents a hierarchical set of parameters (features)
                 // such as exposure, gain, and firmware info. The node map provides access to controls
                 // implemented on the device itself, typically following the GenICam SFNC, while allowing for
                 // device-specific extensions.
-                var nodeMapRemoteDevice = device.RemoteDevice().NodeMaps()[0];
+                using var nodeMapRemoteDevice = device.RemoteDevice().NodeMaps()[0];
 
                 // Print model name using the "DeviceModelName" node.
                 Console.WriteLine(
@@ -117,13 +119,9 @@ namespace open_camera
                 try
                 {
                     // Print maximum sensor resolution (width x height).
-                    var widthMax = nodeMapRemoteDevice
-                        .FindNode<IntegerNode>("WidthMax")
-                        .Value();
+                    var widthMax = nodeMapRemoteDevice.FindNode<IntegerNode>("WidthMax").Value();
 
-                    var heightMax = nodeMapRemoteDevice
-                        .FindNode<IntegerNode>("HeightMax")
-                        .Value();
+                    var heightMax = nodeMapRemoteDevice.FindNode<IntegerNode>("HeightMax").Value();
 
                     Console.WriteLine($"Max. resolution (w x h): {widthMax} x {heightMax}");
                 }
@@ -132,13 +130,6 @@ namespace open_camera
                     // If "WidthMax"/"HeightMax" are not valid or implemented nodes.
                     Console.WriteLine("Max. resolution (w x h): (unknown)");
                 }
-
-                // Dispose objects no longer needed.
-                nodeMapRemoteDevice?.Dispose();
-                nodeMapRemoteDevice = null;
-
-                device?.Dispose();
-                device = null;
             }
             catch (Exception e)
             {
