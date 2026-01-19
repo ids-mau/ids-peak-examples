@@ -7,7 +7,7 @@
     <ProjectGuid>{5BCFAB9E-B6AD-4090-AD81-4557853C5A9B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
-    <ProjectName>unbranded_open_camera_csharp</ProjectName>
+    <ProjectName>OpenCamera</ProjectName>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -15,6 +15,7 @@
     <ManagedAssembly>true</ManagedAssembly>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
@@ -23,9 +24,9 @@
     <DefineDebug>true</DefineDebug>
     <PlatformTarget>x86</PlatformTarget>
     <PlatformToolset>v143</PlatformToolset>
-    <AssemblyName>unbranded_open_camera_csharp_debug</AssemblyName>
+    <AssemblyName>OpenCamera_debug</AssemblyName>
     <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)$(OutputPath)unbranded_open_camera_csharp_debug.exe</StartProgram>
+    <StartProgram>$(SolutionDir)$(OutputPath)OpenCamera_debug.exe</StartProgram>
     <DebugType>full</DebugType>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -36,9 +37,9 @@
     <OutputPath>bin\x86\Release\</OutputPath>
     <PlatformTarget>x86</PlatformTarget>
     <PlatformToolset>v143</PlatformToolset>
-    <AssemblyName>unbranded_open_camera_csharp</AssemblyName>
+    <AssemblyName>OpenCamera</AssemblyName>
     <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)$(OutputPath)unbranded_open_camera_csharp.exe</StartProgram>
+    <StartProgram>$(SolutionDir)$(OutputPath)OpenCamera.exe</StartProgram>
     <DebugType>none</DebugType>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>queue</ErrorReport>
@@ -51,9 +52,9 @@
     <DefineDebug>true</DefineDebug>
     <PlatformTarget>x64</PlatformTarget>
     <PlatformToolset>v143</PlatformToolset>
-    <AssemblyName>unbranded_open_camera_csharp_debug</AssemblyName>
+    <AssemblyName>OpenCamera_debug</AssemblyName>
     <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)$(OutputPath)unbranded_open_camera_csharp_debug.exe</StartProgram>
+    <StartProgram>$(SolutionDir)$(OutputPath)OpenCamera_debug.exe</StartProgram>
     <DebugType>full</DebugType>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -64,9 +65,9 @@
     <OutputPath>bin\x64\Release\</OutputPath>
     <PlatformTarget>x64</PlatformTarget>
     <PlatformToolset>v143</PlatformToolset>
-    <AssemblyName>unbranded_open_camera_csharp</AssemblyName>
+    <AssemblyName>OpenCamera</AssemblyName>
     <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)$(OutputPath)unbranded_open_camera_csharp.exe</StartProgram>
+    <StartProgram>$(SolutionDir)$(OutputPath)OpenCamera.exe</StartProgram>
     <DebugType>none</DebugType>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>queue</ErrorReport>
@@ -109,49 +110,18 @@
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
     </Reference>
-    <Reference Condition="'$(Platform)'=='x86'" Include="${Branding_Product_NameBinary_Visionapi}_dotnet">
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <Private>True</Private>
-      <HintPath>${VAPI_ROOT_PATH}\binding\dotnet\x86_32\${Branding_Product_NameBinary_Visionapi}_dotnet.dll</HintPath>
-    </Reference>
-    <Reference Condition="'$(Platform)'=='x64'" Include="${Branding_Product_NameBinary_Visionapi}_dotnet">
-      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <Private>True</Private>
-      <HintPath>${VAPI_ROOT_PATH}\binding\dotnet\x86_64\${Branding_Product_NameBinary_Visionapi}_dotnet.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-
-    <Target Name="CopyDependenciesX86" BeforeTargets="Build" Condition="'$(Platform)'=='x86'">
-        <ItemGroup>
-            <DependenciesX86 Include="${VAPI_ROOT_PATH}\binding\dotnet\x86_32\${Branding_Product_NameBinary_Visionapi}_dotnet_interface.dll" />
-            <DependenciesX86 Include="${VAPI_ROOT_PATH}\lib\x86_32\*.dll" />
-        </ItemGroup>
-        <Copy
-            SourceFiles="@(DependenciesX86)"
-            DestinationFolder="$(OutputPath)"
-            SkipUnchangedFiles="true" />
-    </Target>
-
-    <Target Name="CopyDependenciesX64" BeforeTargets="Build" Condition="'$(Platform)'=='x64'">
-        <ItemGroup>
-            <DependenciesX64 Include="${VAPI_ROOT_PATH}\binding\dotnet\x86_64\${Branding_Product_NameBinary_Visionapi}_dotnet_interface.dll" />
-            <DependenciesX64 Include="${VAPI_ROOT_PATH}\lib\x86_64\*.dll" />
-        </ItemGroup>
-        <Copy
-            SourceFiles="@(DependenciesX64)"
-            DestinationFolder="$(OutputPath)"
-            SkipUnchangedFiles="true" />
-    </Target>
-
+  <ItemGroup>
+    <PackageReference Include="IDSImaging.Peak.AFL" Version="2.*" />
+    <PackageReference Include="IDSImaging.Peak.API" Version="1.*" />
+    <PackageReference Include="IDSImaging.Peak.IPL" Version="1.*" />
+  </ItemGroup>
   <PropertyGroup>
     <BuildDependsOn>
       $(BuildDependsOn)
     </BuildDependsOn>
   </PropertyGroup>
 </Project>
-
