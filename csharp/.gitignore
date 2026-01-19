@@ -11,6 +11,7 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+.vs/
 [Ll]og/
 [Ll]ogs/
 
