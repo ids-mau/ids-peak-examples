@@ -27,8 +27,10 @@ your application is built for an architecture that can correctly load
 the required native libraries.
 
 If **no `RuntimeIdentifier` (`-r`) is specified**, all available native
-runtimes from the packages will be copied to your build output. This
-maximizes compatibility but increases the application size.
+runtimes from the packages will be copied to your build output.
+This would normally maximize compatibility but increase the application size.
+However, when the Platform parameter is specified, other architectures
+are not supported (except for x86 on x64).
 
 You may **optionally specify `-r <rid>`** to reduce the size of the build
 output by including only the native libraries for a single runtime.
