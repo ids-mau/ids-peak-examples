@@ -21,33 +21,38 @@ Installing the IDS peak Runtime Setup is still required to provide the necessary
 The IDS peak SDK relies on **native (unmanaged) DLLs** that are
 distributed inside the referenced NuGet packages.
 
+Because native binaries are involved, you **must specify the target
+architecture via `-p:Platform=<arch>`** when building. This ensures that
+your application is built for an architecture that can correctly load
+the required native libraries.
+
 If **no `RuntimeIdentifier` (`-r`) is specified**, all available native
 runtimes from the packages will be copied to your build output. This
-makes the build artifact larger but maximizes compatibility across
-platforms.
+maximizes compatibility but increases the application size.
 
-To **reduce the size of the application output**, you can specify a
-concrete runtime, for example:
-
-```bash
-dotnet build -r win-x64
-```
-
-This will include only the native libraries required for that runtime.
+You may **optionally specify `-r <rid>`** to reduce the size of the build
+output by including only the native libraries for a single runtime.
 
 ### .NET (modern, SDK-style)
 
+**Required (correct architecture selection):**
+
 ```bash
-dotnet build exampleProject.csproj
-dotnet run --project exampleProject.csproj
+dotnet build -p:Platform=x64 exampleProject.csproj
+dotnet run  -p:Platform=x64 --project exampleProject.csproj
 ```
 
-> Optional (smaller output):
->
-> ```bash
-> dotnet build -r win-x64 exampleProject.csproj
-> dotnet run -r win-x64 --project exampleProject.csproj
-> ```
+**Optional (smaller output):**
+
+```bash
+dotnet build -r win-x64 -p:Platform=x64 exampleProject.csproj
+dotnet run  -r win-x64 -p:Platform=x64 --project exampleProject.csproj
+```
+
+You can substitute another architecture/runtime pair if needed, e.g.:
+
+* `-p:Platform=x86` (optionally with `-r win-x86`)
+* `-p:Platform=x64` with `-r linux-x64`
 
 ### .NET Framework (classic)
 
@@ -60,10 +65,6 @@ msbuild exampleProjectFramework.csproj /t:Restore
 # Build for a specific platform (required for native DLLs)
 msbuild exampleProjectFramework.csproj /p:Platform=x64
 ```
-
-> **Note:** For .NET Framework projects you must specify `x86` or `x64`
-> because classic .NET does not use the NuGet `runtimes/` mechanism the
-> way modern .NET does.
 
 ## NuGet
 

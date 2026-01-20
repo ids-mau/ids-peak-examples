@@ -34,22 +34,25 @@ This example requires:
 > to provide the drivers and GenTL libraries for device access.
 
 
+Here is a **much more concise, example-specific version** that keeps the same meaning but strips everything down to what users actually need to know and type:
+
 ## Build Instructions
 
-The IDS peak SDK includes **native (unmanaged) DLLs** in its NuGet packages.
+The IDS peak SDK uses **native (unmanaged) DLLs**, so you **must specify
+the `Platform` parameter** when building.
 
 ### .NET (modern, SDK-style)
 
 ```bash
-dotnet build OpenCamera.csproj
-dotnet run --project OpenCamera.csproj
+dotnet build -p:Platform=x64 OpenCamera.csproj
+dotnet run   -p:Platform=x64 --project OpenCamera.csproj
 ```
 
-> Optional (smaller output for a specific runtime):
+> Optional (smaller output):
 >
 > ```bash
-> dotnet build -r win-x64 OpenCamera.csproj
-> dotnet run -r win-x64 --project OpenCamera.csproj
+> dotnet build -r win-x64 -p:Platform=x64 OpenCamera.csproj
+> dotnet run   -r win-x64 -p:Platform=x64 --project OpenCamera.csproj
 > ```
 
 ### .NET Framework (classic)
@@ -60,5 +63,3 @@ Use Visual Studio **or**:
 msbuild OpenCameraFramework.csproj /t:Restore
 msbuild OpenCameraFramework.csproj /p:Platform=x64
 ```
-
-> **Note:** For .NET Framework you must specify `x86` or `x64`.

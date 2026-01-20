@@ -17,6 +17,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
+
+  <Target Name="ValidateCommandLine" BeforeTargets="ResolveAssemblyReferences">
+      <Error Text=" The 'Platform' property must be set on the command line."
+             Condition="'$(Platform)' == ''" />
+      <Error Text=" The 'Platform' property must not be set to Any/AnyCPU."
+             Condition="$(Platform.Contains('Any'))" />
+  </Target>
+
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <OutputPath>bin\x86\Debug\</OutputPath>

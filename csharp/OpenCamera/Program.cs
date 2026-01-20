@@ -39,7 +39,7 @@ namespace IDSImaging.Peak.Samples.OpenCamera
 
             try
             {
-                Console.WriteLine($"IDS peak OpenCamera Sample");
+                Console.WriteLine("IDS peak OpenCamera Sample");
 
                 // Get the device manager singleton object.
                 // WARNING: `using` the device manager instance would result
