@@ -29,7 +29,7 @@ using IDSImaging.Peak.API.Core.Nodes;
 
 namespace IDSImaging.Peak.Samples.OpenCamera
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -90,10 +90,9 @@ namespace IDSImaging.Peak.Samples.OpenCamera
 
                 // Open the selected device with control access.
                 // The access types correspond to the GenTL `DEVICE_ACCESS_FLAGS`.
-                // NOTE: Dispose objects no longer needed at the end of the
-                //       scope by adding `using`.
-                //       Alternatively call `Dispose` explictily:
-                //       `device?.Dispose();`
+                // NOTE: `device` represents an unmanaged C++ resource.
+                //       Use `using` (or call `Dispose` explicitly) to ensure deterministic
+                //       cleanup when the object goes out of scope.
                 using var device = devices[selectedDevice].OpenDevice(DeviceAccessType.Control);
 
                 // Retrieve the remote device's primary node map.
